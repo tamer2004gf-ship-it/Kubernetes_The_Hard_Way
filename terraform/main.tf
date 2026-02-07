@@ -39,7 +39,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# --- Security ---
+
 resource "aws_security_group" "web_sg" {
   vpc_id = aws_vpc.main.id
   dynamic "ingress" {
@@ -48,10 +48,10 @@ resource "aws_security_group" "web_sg" {
       from_port   = ingress.value.port
       to_port     = ingress.value.port
       protocol    = ingress.value.protocol
-      cidr_blocks = ["0.0.0.0/0"] # للتبسيط، عدلها لاحقاً لـ var.MY_IP
+      cidr_blocks = ["147.236.163.3"] 
     }
   }
-  ingress { # فتح التواصل الداخلي الكامل
+  ingress { 
     from_port = 0
     to_port   = 0
     protocol  = "-1"
@@ -70,11 +70,11 @@ resource "aws_key_pair" "k8s_key" {
   public_key = var.ssh_public_key
 }
 
-# --- Compute ---
+
 resource "aws_instance" "masters" {
   count                  = var.master_count
   ami                    = var.ami_id
-  instance_type          = "t3.medium"
+  instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${10 + count.index}"
@@ -85,12 +85,12 @@ resource "aws_instance" "masters" {
 resource "aws_instance" "workers" {
   count                  = var.worker_count
   ami                    = var.ami_id
-  instance_type          = "t3.micro"
+  instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${20 + count.index}"
   key_name               = aws_key_pair.k8s_key.key_name
-  source_dest_check      = false # ضروري لـ k8s networking
+  source_dest_check      = false 
   tags                   = { Name = "k8s-worker-${count.index + 1}" }
 }
 
