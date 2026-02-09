@@ -74,7 +74,7 @@ resource "aws_key_pair" "k8s_key" {
 resource "aws_instance" "masters" {
   count                  = var.master_count
   ami                    = var.ami_id
-  instance_type          = "t2.micro"
+  instance_type          = "t3.nano"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${10 + count.index}"
@@ -85,7 +85,7 @@ resource "aws_instance" "masters" {
 resource "aws_instance" "workers" {
   count                  = var.worker_count
   ami                    = var.ami_id
-  instance_type          = "t2.micro"
+  instance_type          = "t3.nano"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${20 + count.index}"
