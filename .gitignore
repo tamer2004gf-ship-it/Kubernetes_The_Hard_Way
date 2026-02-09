@@ -1,0 +1,13 @@
+# تجاهل ملفات التيرافورم
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# تجاهل المفاتيح والشهادات (أهم شيء!)
+*.pem
+*.csr
+id_rsa
+id_rsa.pub
+terraform.tfvars
+*.exe
