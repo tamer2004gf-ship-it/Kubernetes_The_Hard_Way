@@ -19,7 +19,7 @@ variable "public_subnet_cidr" {
 variable "ami_id" {
   description = "Ubuntu 22.04 AMI ID"
   type        = string
-  default     = "ami-0191d47ba10441f0b"
+  default     = "ami-0084a47cc718c111a"
 }
 
 variable "master_count" {

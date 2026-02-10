@@ -66,15 +66,15 @@ resource "aws_security_group" "web_sg" {
 }
 
 resource "aws_key_pair" "k8s_key" {
-  key_name   = "k8s-cluster-key"
-  public_key = var.ssh_public_key
+  key_name   = "k8s-cluster-key-unique"
+  public_key = file("id_rsa.pub")
 }
 
 
 resource "aws_instance" "masters" {
   count                  = var.master_count
   ami                    = var.ami_id
-  instance_type          = "t3.nano"
+  instance_type          = "t3.micro"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${10 + count.index}"
@@ -85,7 +85,7 @@ resource "aws_instance" "masters" {
 resource "aws_instance" "workers" {
   count                  = var.worker_count
   ami                    = var.ami_id
-  instance_type          = "t3.nano"
+  instance_type          = "t3.micro"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${20 + count.index}"
