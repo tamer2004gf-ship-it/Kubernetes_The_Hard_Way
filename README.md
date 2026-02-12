@@ -1,0 +1,73 @@
+Kubernetes The Hard Way: My Deployment Journey
+By Tamer - DevOps Engineer in the Making
+This repository documents my hands-on experience in building a Kubernetes cluster from scratch on AWS EC2. No automated scripts, no kubeadm—just pure configuration, troubleshooting, and grit.
+
+🏗️ Phase 1: Infrastructure & OS Tuning
+Before starting K8s, I had to prepare the environment to be "Cluster-Ready".
+
+1.1 Compute Resources
+Nodes: 1 Master, 1 Worker (Ubuntu 24.04 LTS).
+
+Network: Custom VPC, Subnets, and Security Groups allowing K8s internal & external traffic.
+
+1.2 The "Cgroup v1" Battle (Kernel Modification)
+Ubuntu 24.04 uses Cgroup v2 by default, but K8s v1.21.0 requires v1. I had to dive into the Bootloader:
+
+Command: sudo nano /etc/default/grub
+
+Change: Added systemd.unified_cgroup_hierarchy=0 to GRUB_CMDLINE_LINUX_DEFAULT.
+
+Action: sudo update-grub followed by a sudo reboot.
+
+Verification: cat /proc/cgroups to ensure v1 was active.
+
+🔧 Phase 2: Bootstrapping the Control Plane & Worker
+Setting up the brain (Master) and the muscle (Worker).
+
+2.1 Service Management
+Ensured that containerd, kubelet, and kube-proxy were configured and running.
+
+Commands used:
+
+Bash
+sudo systemctl daemon-reload
+sudo systemctl enable containerd kubelet kube-proxy
+sudo systemctl start containerd kubelet kube-proxy
+Status Check: sudo systemctl status kubelet (Verifying the Green "Active" status).
+
+2.2 SSH Security & Remote Access
+To move away from AWS Connect and work like a pro from my local terminal:
+
+Step: Generated SSH Key pair on Windows.
+
+Step: Manually edited ~/.ssh/authorized_keys using nano on the server to add my public key.
+
+Outcome: Secure, passwordless access from my local machine.
+
+🛡️ Phase 3: Networking & Troubleshooting (The Real DevOps Work)
+This is where the real learning happened.
+
+3.1 Network Plugin (Weave-Net)
+Applied the CNI plugin to enable Pod-to-Pod communication.
+
+Command: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+3.2 The CoreDNS Loop Crisis
+CoreDNS was stuck in CrashLoopBackOff. I diagnosed it as a DNS loop issue between the node and the pod.
+
+The Fix:
+
+kubectl edit cm coredns -n kube-system
+
+Located and deleted the loop plugin line.
+
+Restarted the pods: kubectl delete pod -n kube-system -l k8s-app=kube-dns
+
+Result: STATUS: Running (1/1) 🚀
+
+📊 Final Cluster Status
+After all the hard work, the cluster is stable:
+
+Nodes Status: worker-1 Ready
+
+System Pods: weave-net, coredns, and test-pod all in Running state.
