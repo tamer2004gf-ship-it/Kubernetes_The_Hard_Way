@@ -96,12 +96,17 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "masters" {
   count                  = var.master_count
   ami                    = var.ami_id
-  instance_type          = "t3.micro"
+  instance_type          = "t3.medium"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   # تأكد أن الـ CIDR الخاص بالـ Subnet يطابق هذا النطاق
   private_ip             = "10.0.1.${10 + count.index}" 
   key_name               = aws_key_pair.k8s_key.key_name
+  root_block_device {
+    volume_size = 200
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
   tags                   = { Name = "k8s-master-${count.index + 1}" }
   
   # اعتمادية لضمان وجود المفتاح والشبكة قبل إنشاء السيرفر
@@ -111,12 +116,17 @@ resource "aws_instance" "masters" {
 resource "aws_instance" "workers" {
   count                  = var.worker_count
   ami                    = var.ami_id
-  instance_type          = "t3.micro"
+  instance_type          = "t3.medium"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   private_ip             = "10.0.1.${20 + count.index}"
   key_name               = aws_key_pair.k8s_key.key_name
   source_dest_check      = false
+  root_block_device {
+    volume_size = 200
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
   tags                   = { Name = "k8s-worker-${count.index + 1}" }
 
   depends_on = [aws_internet_gateway.main, aws_key_pair.k8s_key]
